@@ -10,7 +10,7 @@ export const PLAYER_JOIN = {
     const playerJoinLogPattern =
       /\[server\] Player '.*?' logged in with Permissions:/g;
     const msg = content.match(playerJoinLogPattern)[0];
-    const playerName = msg.match(/Player (\w+)/)[1];
+    const playerName = msg.match(/'([^']+)'/)[1]; // Extract the player name from the log message
 
     const messageContent = `Player ${playerName} joined 🎮`;
 

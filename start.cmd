@@ -1,3 +1,3 @@
-cd "C:\EnshroudedServer\enshrouded_dedicated_server\enshrouded-host"
+cd "C:\EnshroudedServer\enshrouded-host"
 npm run start
 pause
