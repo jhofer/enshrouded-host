@@ -2,6 +2,7 @@ const { spawn } = require("child_process");
 const { log, logError } = require("./logger.js");
 const { webhookClient } = require("./discord/index.js");
 
+// if argument is "exitevent" then send only message to discord and exit
 
 console.log("Current directory:", __dirname);
 const serverWrapper = spawn(
@@ -11,6 +12,9 @@ const serverWrapper = spawn(
     cwd: __dirname,
   }
 );
+
+// spawn hearbeat process that will check if nodejs process is still allive
+
 
 // Log output from the server
 serverWrapper.stdout.on("data", (data) => {
@@ -22,33 +26,54 @@ serverWrapper.stderr.on("data", (data) => {
   logError(message);
 });
 
-// Wait for the server to exit
-serverWrapper.on("exit", (code) => {
-  exitHandler();
-  process.exit(code);
-});
-
-const exitHandler = () => {
-  log("Exiting...");
-  serverWrapper.kill("SIGINT");
-  webhookClient.send("Server shutdown 😴").catch((error) => {
-    console.error("Error sending message to Discord:", error);
-  });
+let shutdownMessagemessageSend = false;
+const sendShutdownMessage = async () => {
+  if (shutdownMessagemessageSend) {
+    return;
+  }
+  shutdownMessagemessageSend = true;
+  try {
+    log("Sending shutdown message to Discord...");
+    await webhookClient.send("Server is shutting down... 😴");
+    log("Shutdown message sent to Discord.");
+  } catch (error) {
+    console.error("Error sending shutdown message:", error);
+  }
 }
+
+
+const exitHandler = async (exitCode = 0) => {
+
+  try {
+    log("Exiting...");
+    await sendShutdownMessage();
+  } catch (error) {
+    console.error("Error during shutdown:", error);
+  } finally {
+    serverWrapper.kill("SIGINT");
+    process.exit(exitCode);
+  }
+};
+// Wait for the server to exit
+serverWrapper.on("exit", exitHandler);
+
+
 // Handle exit signals
 
-process.on("exit", () => {
-  exitHandler();
-});
-process.on("SIGINT", () => {
-  exitHandler();
-});
-process.on("SIGTERM", () => {
-  exitHandler();
-});
-process.on("uncaughtException", (err) => {
-  exitHandler();
-});
+process.on("exit",
+  exitHandler
+);
+process.on("SIGINT",
+  exitHandler
+);
+process.on("SIGTERM",
+  exitHandler
+);
+process.on("uncaughtException", exitHandler);
 
-// Keep app alive until the server exits
-setInterval(() => { }, 1000);
+process.on("SIGHUP",
+  exitHandler
+);
+
+
+
