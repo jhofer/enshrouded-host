@@ -1,9 +1,9 @@
+const { WebhookClient } = require("discord.js");
 const dotenv = require("dotenv");
 const { STARTUP_LOGS } = require("./startup.js");
 const { SHUTDOWN_LOGS } = require("./shutdown.js");
 const { PLAYER_JOIN } = require("./playerjoin.js");
 const { PLAYER_LEFT } = require("./playerleft.js");
-const { WebhookClient } = require("discord.js");
 
 const LOG_REGISTRY = [STARTUP_LOGS, SHUTDOWN_LOGS, PLAYER_JOIN, PLAYER_LEFT];
 
@@ -17,6 +17,7 @@ const webhookClient = new WebhookClient({
   id: webhookId,
   token: webhookToken,
 });
+exports.webhookClient = webhookClient;
 
 exports.logToDiscord = (message) => {
   try {

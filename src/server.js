@@ -1,7 +1,6 @@
 const { spawn } = require("child_process");
-const { fileURLToPath } = require("url");
-const path = require("path");
 const { log, logError } = require("./logger.js");
+const { webhookClient } = require("./discord/index.js");
 
 
 console.log("Current directory:", __dirname);
@@ -25,27 +24,31 @@ serverWrapper.stderr.on("data", (data) => {
 
 // Wait for the server to exit
 serverWrapper.on("exit", (code) => {
-  const message = `Server exited with code ${code}`;
-  log(message);
+  exitHandler();
   process.exit(code);
 });
 
-process.on("exit", () => {
+const exitHandler = () => {
   log("Exiting...");
   serverWrapper.kill("SIGINT");
+  webhookClient.send("Server shutdown 😴").catch((error) => {
+    console.error("Error sending message to Discord:", error);
+  });
+}
+// Handle exit signals
+
+process.on("exit", () => {
+  exitHandler();
 });
 process.on("SIGINT", () => {
-  log("Exiting (SIGINT)...");
-  serverWrapper.kill("SIGINT");
+  exitHandler();
 });
 process.on("SIGTERM", () => {
-  log("Exiting (SIGTERM)...");
-  serverWrapper.kill("SIGINT");
+  exitHandler();
 });
 process.on("uncaughtException", (err) => {
-  logError("Uncaught exception:", err);
-  serverWrapper.kill("SIGINT");
+  exitHandler();
 });
 
 // Keep app alive until the server exits
-setInterval(() => {}, 1000);
+setInterval(() => { }, 1000);

@@ -1,4 +1,4 @@
-export const PLAYER_LEFT = {
+exports.PLAYER_LEFT = {
   doesMatch: (content) => {
     // Check if the content contains the player left log pattern
     const playerLeftLogPattern =

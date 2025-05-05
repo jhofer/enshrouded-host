@@ -1,4 +1,4 @@
-export const PLAYER_JOIN = {
+exports.PLAYER_JOIN = {
   doesMatch: (content) => {
     // Check if the content contains the player join log pattern
     const playerJoinLogPattern =
